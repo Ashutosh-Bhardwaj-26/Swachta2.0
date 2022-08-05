@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/frag_back5"
+    tools:context=".houseowner.HouseHoldMain">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:elevation="50dp"
+            app:cardCornerRadius="15dp">
+
+            <fragment
+                android:id="@+id/map2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:value="AIzaSyCdk0GkRdoCCpgU-T_rBFoU_CFPWB5KnBM"/>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </RelativeLayout>
+</FrameLayout>
