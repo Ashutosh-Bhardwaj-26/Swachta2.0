@@ -43,6 +43,15 @@ class HouseHoldMain: AppCompatActivity() {
                     finish()
                     Toast.makeText(this, "Logged Out ", Toast.LENGTH_SHORT).show()
                 }
+                R.id.alarm -> {
+                    var editor = token.edit()
+                    editor.putString("loginUID"," ")
+                    editor.commit()
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                    Toast.makeText(this, "Logged Out ", Toast.LENGTH_SHORT).show()
+                }
             }
             false
         }

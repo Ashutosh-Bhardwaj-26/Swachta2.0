@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/drawable/icandroid.xml" value="0.186" />
+        <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_alarm.xml" value="0.20521590423257802" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_curbside.xml" value="0.20521590423257802" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_curbsidemain.xml" value="0.20521590423257802" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_householdmain.xml" value="0.20436083796494228" />
@@ -15,7 +17,8 @@
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_splash.xml" value="0.2359375" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/activity_upload.xml" value="0.25" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/content_main.xml" value="0.1111111111111111" />
-        <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/fragment_map_main.xml" value="0.20521590423257802" />
+        <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/fragment_map_main.xml" value="0.152" />
+        <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/fragment_profile_main.xml" value="0.20521590423257802" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/toolbar.xml" value="0.25" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/layout/toolbar_main.xml" value="0.20436083796494228" />
         <entry key="..\:/Users/ashub/AndroidStudioProjects/MyApplication3/app/src/main/res/menu/main_menu.xml" value="0.20521590423257802" />

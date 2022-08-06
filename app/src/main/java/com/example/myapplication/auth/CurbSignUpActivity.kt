@@ -56,7 +56,6 @@ class CurbSignUpActivity : AppCompatActivity() {
         etPass = findViewById(R.id.etpass)
         btnSignUp = findViewById<MaterialButton>(R.id.btnSSigned)
         btnlogin = findViewById<MaterialButton>(R.id.btn_login)
-        Toast.makeText(this, "h", Toast.LENGTH_SHORT).show()
 
 
         btnSignUp!!.setOnClickListener {

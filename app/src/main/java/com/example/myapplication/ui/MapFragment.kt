@@ -1,27 +1,27 @@
 package com.example.myapplication.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.example.myapplication.R
+import com.example.myapplication.curbsidecollector.AccessBGLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
@@ -49,6 +49,13 @@ class MapFragment : Fragment() , OnMapReadyCallback ,GoogleMap.OnMarkerClickList
     private lateinit var database: DatabaseReference
     private lateinit var database2: DatabaseReference
     private lateinit var database3: DatabaseReference
+    private lateinit var myIcon: BitmapDescriptor
+    private lateinit var mHandler: Handler
+    private var locationArrayList: ArrayList<Marker?> = ArrayList()
+    private var location: ArrayList<Location> = ArrayList()
+    private var loop_value = 0
+    private var cardView: MaterialCardView? = null
+
 
 
 
@@ -66,33 +73,35 @@ class MapFragment : Fragment() , OnMapReadyCallback ,GoogleMap.OnMarkerClickList
         savedInstanceState: Bundle?
     ): View? {
 
-        return inflater.inflate(R.layout.fragment_map_main, container, false)
+        return inflater.inflate(com.example.myapplication.R.layout.fragment_map_main, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        cardView = getView()?.findViewById(R.id.cardmap) as MaterialCardView
+
 
         database = FirebaseDatabase.getInstance().getReference("CurbsideUID")
         database2 = FirebaseDatabase.getInstance().getReference("CurbsideUserLocation")
         database3 = FirebaseDatabase.getInstance().getReference("User")
 
 
-        mapFragment = childFragmentManager.findFragmentById(R.id.map2) as SupportMapFragment
+        mapFragment = childFragmentManager.findFragmentById(com.example.myapplication.R.id.map2) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
     }
+
+
 
     override  fun onMapReady(googleMap: GoogleMap){
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
         setUpMAP()
-
     }
 
     private fun setUpMAP() {
-
-
 
 
         if (ActivityCompat.checkSelfPermission(
@@ -103,70 +112,118 @@ class MapFragment : Fragment() , OnMapReadyCallback ,GoogleMap.OnMarkerClickList
                 LOCATION_REQUEST_CODE)
             return
         }
+
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(requireActivity()) { location ->
-
-
+            //for household marker
             if(location !=null){
                 lastlocation = location
                 val currentLatLong = LatLng(location.latitude,location.longitude)
-                placeMarkerOnMap(currentLatLong)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLong,12f))
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLong,16f))
             }
+        }
+        curbsideMarker()
+        callUpdateLocation()
+    }
 
+
+    private fun callUpdateLocation() {
+        val serviceIntent = Intent(activity, AccessBGLocation::class.java)
+        serviceIntent.putExtra("inputExtra", "Live Location Shared")
+        ContextCompat.startForegroundService(requireActivity(), serviceIntent);
+    }
+
+
+    private var mStatusChecker: Runnable = object : Runnable {
+        override fun run() {
+            try {
+                updatecurbsideMarker() //this function can change value of mInterval.
+            } finally {
+                // 100% guarantee that this always happens, even if
+                // your update method throws an exception
+                mHandler.postDelayed(this,1000)
+            }
         }
     }
 
-    private fun refreshActivity() {
-        val ft: FragmentTransaction = requireFragmentManager().beginTransaction()
-        if (Build.VERSION.SDK_INT >= 26) {
-            ft.setReorderingAllowed(false)
-            Toast.makeText(this.activity, "Successfully LoggedIn", Toast.LENGTH_SHORT).show()
-        }
-        ft.detach(this).attach(this).commit()
-    }
-
-    private fun placeMarkerOnMap(currentLatLong: LatLng) {
-
+    //for curbside marker
+    public fun curbsideMarker() {
         var loop = 0
-        lateinit var userID: String
-        var latitude: String = currentLatLong.latitude.toString()
-        var longitude: String = currentLatLong.longitude.toString()
-        var name: String = "Charlie"
-        var locationList: Map<String,String>
-
+        locationArrayList.clear()
+        location.clear()
         database.child("curbCount").get().addOnSuccessListener{
             loop = it.value.toString().toInt()
-        }
-
-        for(i in 0..loop){
-            database.child(i.toString()).get().addOnSuccessListener {
-                userID = it.value.toString()
-
-                database2.child(userID).get().addOnSuccessListener{
-                    if(it.child("latitude").value.toString() != "null"){
-                        latitude = it.child("latitude").value.toString()
-                        longitude = it.child("longitude").value.toString()
-                        database3.child(userID).get().addOnSuccessListener {
-                            name = it.child("name").value.toString()
-
-                            val curbLatLong = LatLng(latitude.toDouble(),longitude.toDouble())
-                            val markerOptionsp = MarkerOptions().position(curbLatLong)
-                            markerOptionsp.title(name)
-                            mMap.addMarker(markerOptionsp)
-
-                        }.addOnFailureListener{}
-                    }
+            loop_value = loop
+            for(i in 0..loop){
+                database.child(i.toString()).get().addOnSuccessListener {
+                    var userID = it.value.toString()
+                    database2.child(userID).get().addOnSuccessListener{
+                        if(it.child("latitude").value.toString() != "null"){
+                            var latitude = it.child("latitude").value.toString()
+                            var longitude = it.child("longitude").value.toString()
+                            database3.child(userID).get().addOnSuccessListener {
+                                var name = it.child("name").value.toString()
+                                val currentLatLong = LatLng(latitude.toDouble(),longitude.toDouble())
+                                placeMarkerOnMap(currentLatLong,name)
+                            }.addOnFailureListener{}
+                        }
+                    }.addOnFailureListener{}
                 }.addOnFailureListener{}
-            }.addOnFailureListener{}
+            }
         }
-
-
-
-//        val markerOptions = MarkerOptions().position(currentLatLong)
-//        markerOptions.title("$currentLatLong")
-//        mMap.addMarker(markerOptions)
     }
+
+    private fun updatecurbsideMarker() {
+        var loop = 0
+        database.child("curbCount").get().addOnSuccessListener{
+            loop = it.value.toString().toInt()
+            if(loop != loop_value){
+                curbsideMarker()
+            }
+            for(i in 0..loop){
+                database.child(i.toString()).get().addOnSuccessListener {
+                    var userID = it.value.toString()
+                    database2.child(userID).get().addOnSuccessListener{
+                        if(it.child("latitude").value.toString() != "null"){
+                            var latitude = it.child("latitude").value.toString()
+                            var longitude = it.child("longitude").value.toString()
+                            database3.child(userID).get().addOnSuccessListener {
+                                var name = it.child("name").value.toString()
+                                val currentLatLong = LatLng(latitude.toDouble(),longitude.toDouble())
+                                updateMarkerOnMap(currentLatLong,name,i)
+                            }.addOnFailureListener{}
+                        }
+                    }.addOnFailureListener{}
+                }.addOnFailureListener{}
+            }
+        }
+    }
+
+    private fun placeMarkerOnMap(currentLatLong: LatLng,name: String) {
+            var local: Location = Location("dummyprovider");
+            local.latitude = currentLatLong.latitude
+            local.longitude = currentLatLong.longitude
+            location.add(local)
+
+            val markerOption = MarkerOptions().position(currentLatLong)
+
+            markerOption.title(name)
+            markerOption.rotation(local.bearing)
+            markerOption.anchor(0.5.toFloat(), 0.5.toFloat())
+            markerOption.icon(BitmapDescriptorFactory.fromResource(com.example.myapplication.R.drawable.garbagetruck))
+            var userMarkerLocation = mMap.addMarker(markerOption)
+            locationArrayList.add(userMarkerLocation)
+
+            mHandler = Handler()
+            mStatusChecker.run()
+    }
+
+    private fun updateMarkerOnMap(currentLatLong: LatLng,name: String,i: Int) {
+        val latlong = LatLng(currentLatLong.latitude,currentLatLong.longitude)
+        locationArrayList.get(i)?.position = latlong
+        locationArrayList.get(i)?.rotation = location.get(i).bearing
+    }
+
     override fun onMarkerClick(p0: Marker) = false
 
     companion object {
@@ -192,5 +249,13 @@ class MapFragment : Fragment() , OnMapReadyCallback ,GoogleMap.OnMarkerClickList
             }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stopRepeatingTask()
+    }
+
+    private fun stopRepeatingTask() {
+        mHandler.removeCallbacks(mStatusChecker);
+    }
 
 }
