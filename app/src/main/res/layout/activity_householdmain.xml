@@ -14,9 +14,15 @@
             layout="@layout/toolbar_main"/>
 
         <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabs"
+            app:tabMinWidth="15dp"
+            app:tabRippleColor="@color/white"
+            android:background="@color/colorPrimaryDark"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tabs"/>
+            app:tabTextColor="@color/white"
+            app:tabIndicatorColor="@color/white"
+            />
 
     </com.google.android.material.appbar.AppBarLayout>
 

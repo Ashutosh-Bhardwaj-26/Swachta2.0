@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:background="@color/colorPrimary"
     android:minHeight="?attr/actionBarSize"
-    app:title="Swachta 2.0"
+    app:title="Swachta"
     app:titleTextColor="@color/white"
     app:titleMarginStart="150dp">
 

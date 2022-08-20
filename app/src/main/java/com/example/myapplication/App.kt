@@ -14,7 +14,7 @@ class App : Application() {
         val serviceChannel = NotificationChannel(
             CHANNEL_ID,
             "Location Access",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_NONE
         )
         val manager = getSystemService(
             NotificationManager::class.java

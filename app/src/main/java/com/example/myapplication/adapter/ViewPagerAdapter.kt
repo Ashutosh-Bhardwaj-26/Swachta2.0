@@ -25,7 +25,7 @@ internal class ViewPagerAdapter (
     }
 
     companion object{
-        val TAB_TITLES = arrayOf("Map","Camera","Profile")
+        val TAB_TITLES = arrayOf("Points","Complaint","Track")
     }
 
 }

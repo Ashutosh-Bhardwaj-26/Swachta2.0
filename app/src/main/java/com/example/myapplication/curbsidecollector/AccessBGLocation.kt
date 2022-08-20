@@ -2,12 +2,12 @@ package com.example.myapplication.curbsidecollector
 
 import android.Manifest
 import android.R
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
@@ -15,16 +15,17 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.myapplication.App.Companion.CHANNEL_ID
-import com.example.myapplication.ui.MapFragment
+import com.example.myapplication.houseowner.AlarmBroadcast
 import com.example.myapplication.userdata.CurbsideLocationActivity
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class AccessBGLocation: Service() {
@@ -35,16 +36,20 @@ class AccessBGLocation: Service() {
     private lateinit var database: DatabaseReference
     private lateinit var database2: DatabaseReference
     private lateinit var database3: DatabaseReference
-    private var locationArrayList: ArrayList<Marker?> = ArrayList()
-    private var locationList: ArrayList<Location> = ArrayList()
     private var loop_value = 0
-    private var mapFragment: MapFragment = MapFragment()
+    private lateinit var alarmManager: AlarmManager
+    private lateinit var calender: Calendar
+    private  var realTime:Int = 0
+    private lateinit var simpleDateFormate: SimpleDateFormat
+    private var x =0
+    //remeber to make it true while performing there
+    private var curbsideInside = false
 
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
-        interval = 1000
-        fastestInterval = 1000
+        interval = 7000
+        fastestInterval = 9000
         priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        maxWaitTime = 1000
+        maxWaitTime = 10000
     }
 
     private var locationCallback: LocationCallback = object : LocationCallback() {
@@ -60,8 +65,22 @@ class AccessBGLocation: Service() {
                 val currentLatLong = LatLng(location.latitude.toDouble(),location.longitude.toDouble())
 
                 if(token.getString("loginUID"," ")!=" "){
+                    //condition to check if household or curbsdie
                     if(token.getString("type"," ") == "HouseHold"){
-                        checkRadius(currentLatLong)
+
+                        calender = Calendar.getInstance()
+                        simpleDateFormate = SimpleDateFormat("HH")
+                        realTime = Integer.parseInt(simpleDateFormate.format(calender.time))
+                        if(realTime == 24){
+                            curbsideInside = true
+                        }
+                        if(curbsideInside){
+                            curbsideInside = false
+                            checkRadius(currentLatLong)
+                        }
+                        //write condition to only occur after some time
+                        //if()
+
                     }else{
                         val userId = auth.uid!!
                         var locationdb = CurbsideLocationActivity((location.latitude).toString(),(location.longitude).toString())
@@ -80,8 +99,6 @@ class AccessBGLocation: Service() {
         database3 = FirebaseDatabase.getInstance().getReference("User")
 
         var loop = 0
-        locationArrayList.clear()
-        locationList.clear()
         database.child("curbCount").get().addOnSuccessListener{
             loop = it.value.toString().toInt()
             loop_value = loop
@@ -94,11 +111,16 @@ class AccessBGLocation: Service() {
                             var longitude = it.child("longitude").value.toString()
                             database3.child(userID).get().addOnSuccessListener {
                                 val currentLatLong = LatLng(latitude.toDouble(),longitude.toDouble())
-
                                 var distance = CalculationByDistance(location,currentLatLong)
-
                                 if (distance < 10) {
-                                    Toast.makeText(this, distance.toString(), Toast.LENGTH_LONG).show()
+                                    alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+                                    val intent = Intent(this, AlarmBroadcast::class.java)
+                                    val pendingIntent = PendingIntent.getBroadcast(
+                                        this,
+                                        111,
+                                        intent,
+                                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT)
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP,System.currentTimeMillis()+ 1000,pendingIntent)
                                 }
                             }.addOnFailureListener{}
                         }
@@ -106,7 +128,6 @@ class AccessBGLocation: Service() {
                 }.addOnFailureListener{}
             }
         }
-
     }
 
     fun CalculationByDistance(StartP: LatLng, EndP: LatLng): Double {
@@ -169,7 +190,7 @@ class AccessBGLocation: Service() {
             applicationContext,
             0,
             notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
         )
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -177,7 +198,9 @@ class AccessBGLocation: Service() {
             .setContentText(input)
             .setSmallIcon(R.drawable.ic_delete)
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
             .build()
+
 
         startForeground(1, notification)
 

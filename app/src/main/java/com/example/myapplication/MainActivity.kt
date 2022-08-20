@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.example.myapplication.houseowner.MapActivity
 import com.example.myapplication.houseowner.UploadActivity
 
 class MainActivity  : AppCompatActivity() {
@@ -18,11 +17,6 @@ class MainActivity  : AppCompatActivity() {
 
         btn_map = findViewById(R.id.btn_map)
         btn_ml = findViewById(R.id.btn_ml)
-
-        btn_map.setOnClickListener(){
-            val intent = Intent(this, MapActivity::class.java)
-            startActivity(intent)
-        }
 
         btn_ml.setOnClickListener(){
             val intent = Intent(this, UploadActivity::class.java)

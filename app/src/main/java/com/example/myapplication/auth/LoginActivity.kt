@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -17,16 +20,20 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
+
 class LoginActivity : AppCompatActivity() {
 
     private var tvRedirectSignUp: MaterialButton? =null
     private var btnLogin: MaterialButton? =null
     private var etEmail: TextInputEditText? = null
     private var etPass: TextInputEditText? = null
+    private var progressbar: ProgressBar?=null
+    private val handler = Handler()
 
     // Creating firebaseAuth object
     lateinit var auth: FirebaseAuth
     private lateinit var database: DatabaseReference
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,10 +44,28 @@ class LoginActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED ) {
-            ActivityCompat.requestPermissions(this, arrayOf( Manifest.permission.ACCESS_FINE_LOCATION),
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA,
+                                Manifest.permission.ACCESS_FINE_LOCATION),
                 MapFragment.LOCATION_REQUEST_CODE
             )
         }
+//        if (ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+//            ) != PackageManager.PERMISSION_GRANTED ) {
+//            ActivityCompat.requestPermissions(this, arrayOf( Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS),
+//                MapFragment.LOCATION_REQUEST_CODE
+//            )
+//2       }
+//        if (ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.CAMERA
+//            ) != PackageManager.PERMISSION_GRANTED ) {
+//            ActivityCompat.requestPermissions(this, arrayOf( Manifest.permission.CAMERA),
+//                MapFragment.CAMERA_REQUEST_CODE
+//            )
+//        }
+
 
         if(token.getString("loginUID"," ")!=" "){
             if(token.getString("type"," ") == "HouseHold"){
@@ -65,6 +90,7 @@ class LoginActivity : AppCompatActivity() {
         btnLogin = findViewById(R.id.btnLogin)
         etEmail = findViewById(R.id.etEmailAddress)
         etPass = findViewById(R.id.etPassword)
+        progressbar = findViewById(R.id.login_pb)
 
         // initialising Firebase auth object
         auth = FirebaseAuth.getInstance()
@@ -81,6 +107,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun login() {
+        progressbar?.visibility = View.VISIBLE
         val email = etEmail?.text.toString()
         val pass = etPass?.text.toString()
         // calling signInWithEmailAndPassword(email, pass)
@@ -93,8 +120,14 @@ class LoginActivity : AppCompatActivity() {
             if (it.isSuccessful) {
                 Toast.makeText(this, "Successfully LoggedIn", Toast.LENGTH_SHORT).show()
                 getAndOpen()
-            } else
+            } else{
                 Toast.makeText(this, "Log In failed ", Toast.LENGTH_SHORT).show()
+                handler.postDelayed(object :Runnable{
+                    override fun run(){
+                        progressbar?.visibility = View.INVISIBLE
+                    }
+                },2000)
+            }
         }
     }
 
@@ -111,6 +144,7 @@ class LoginActivity : AppCompatActivity() {
                 editor.commit()
                 val intent = Intent(this, HouseHoldMain::class.java)
                 startActivity(intent)
+
                 finish()
             }else {
                 var editor = token.edit()
@@ -123,6 +157,9 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
+
+
+
     override fun onBackPressed() {
         super.onBackPressed()
         moveTaskToBack(true);

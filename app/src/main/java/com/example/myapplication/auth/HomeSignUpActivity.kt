@@ -83,7 +83,6 @@ class HomeSignUpActivity : AppCompatActivity() {
             if (it.isSuccessful) {
                 progressBar!!.visibility = View.VISIBLE
                 Toast.makeText(this, "Successfully Singed Up", Toast.LENGTH_SHORT).show()
-
                 saveData()
                 val userId = auth.uid!!
                 var editor = token.edit()
